@@ -1,0 +1,6 @@
+description = ""
+requires = "unix"
+archive(byte) = "network_manager.cma"
+archive(native) = "network_manager.cmxa"
+plugin(byte) = "network_manager.cma"
+plugin(native) = "network_manager.cmxs"

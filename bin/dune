@@ -1,0 +1,4 @@
+(executable
+ (public_name network_manager)
+ (name main)
+ (libraries network_manager))

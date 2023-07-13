@@ -1,0 +1,6 @@
+(library
+ (name network_manager)
+ (public_name network_manager)
+ (libraries unix)
+ (modules network main serialize dispatcher job)
+)

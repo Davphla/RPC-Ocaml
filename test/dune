@@ -1,0 +1,5 @@
+(test
+ (libraries alcotest)
+ (name network_manager)
+ (modules network_manager)
+ )
