@@ -7,10 +7,10 @@ module Serialize = struct
     data : bytes;
   }
 
-  let from_msg data =  {
-    job_id = data.job_id;
-    packet_type = data.packet_type;
-    data = data.data;
+  let from_msg msg = {
+    job_id = msg.job_id;
+    packet_type = msg.packet_type;
+    data = msg.data;
   }
   
   let to_msg id ptype data = {
@@ -18,6 +18,12 @@ module Serialize = struct
     packet_type = ptype;
     data = data;
   }
+
+  let to_bytes _msg =
+    ()
+
+  let from_bytes _buf =
+    ()
 
 
 end

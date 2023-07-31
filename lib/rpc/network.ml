@@ -40,10 +40,8 @@ module Workers = struct
 
   let get_fds () = 
     let fds = Hashtbl.fold (fun _ w acc -> w.client_fd :: acc) workers [] in
-    Transport.server :: fds;;
+    Transport.server :: fds
  
-  let get_id addr = Hashtbl.hash addr;;
-
   let add_worker fd sockaddr =
     let create_worker = {
       client_fd = fd;
@@ -53,51 +51,41 @@ module Workers = struct
     in
 
     let w = create_worker in
-      Hashtbl.add workers w.addr w;;
+      Hashtbl.add workers w.client_fd w;;
 
-  let remove_worker addr = Hashtbl.remove workers addr;;
+  let remove_worker fd = Hashtbl.remove workers fd;;
 
-  let get_worker addr = Hashtbl.find workers addr;;
+  let get_worker fd = Hashtbl.find workers fd;;
+
 end
 
 
 module Network = struct
-  open Serialize
-  open Job
   
   (** Poll the server and the workers for incoming messages *)
   let poll_server () =
-    let accept_new_client fd =
+    let receive_req fd =
       let msg = Bytes.create 128 in
       let (fd, addr) = Unix.accept fd in
         Workers.add_worker fd addr;
         let _ = Unix.recv fd msg 0 128 [] in
-        msg
+        (addr, msg)
     in
-    let new_transfer fd = 
+    let receive_res fd = 
       let msg = Bytes.create 128 in
       let _ = Unix.recv fd msg 0 128 [] in
-      msg
+      let addr = (Workers.get_worker fd).addr in
+      (addr, msg)
     in
     let fds = Workers.get_fds () in
     
     let (r, _, _) = Unix.select fds [] [] 0. in
     List.map (fun fd -> 
       if fd = Transport.server then
-        accept_new_client fd
+        receive_req fd
       else
-        new_transfer fd
+        receive_res fd
     ) r;;
-  
-  let process_msg msg = 
-    let process_response msg = () in 
-    let process_request msg = () in 
-
-    let data = Serialize.from_msg msg in
-    match data.packet_type  with 
-    | RESPONSE -> process_response data
-    | REQUEST -> process_request data
-
   
   (** Use to send a message to a remote unit *)
   let send_msg_to_worker addr msg = 

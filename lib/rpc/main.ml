@@ -1,11 +1,13 @@
 open Dispatcher
 open Network
+open Job
 
 module Rpc = struct
   open Serialize
 
   let run_dispatcher () =  
     while true do 
+      (** Wait until change in the job queue. *)
       Dispatcher.dispatch_jobs ()
     done
 
@@ -16,7 +18,7 @@ module Rpc = struct
   let run_server () =
     while true do
       let responses = Network.poll_server () in
-      List.iter (fun (msg) -> Network.process_msg msg) responses;
+      List.iter Job.process_msg responses;
     done
 
 
