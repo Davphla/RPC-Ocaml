@@ -19,11 +19,13 @@ module Serialize = struct
     data = data;
   }
 
-  let to_bytes _msg =
-    ()
+  (** Transform packet into sendable network bytes message *)
+  let to_bytes msg = Marshal.to_bytes msg []
 
-  let from_bytes _buf =
-    ()
+
+  (** Transform bytes from network into readable structure *)
+  let from_bytes buf = Marshal.from_bytes buf 0
+    
 
 
 end

@@ -1,0 +1,1 @@
+let _ = Network_Manager.run ()

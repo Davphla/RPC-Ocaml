@@ -1,13 +1,12 @@
-open Dispatcher
 open Network
 open Job
+open Dispatcher
 
 module Rpc = struct
-  open Serialize
 
+  (** Wait until change in the job queue. *)
   let run_dispatcher () =  
     while true do 
-      (** Wait until change in the job queue. *)
       Dispatcher.dispatch_jobs ()
     done
 
@@ -22,8 +21,8 @@ module Rpc = struct
     done
 
 
-    let run () = 
-      let d = Domain.spawn run_server in
+  let run () = 
+    let d = Domain.spawn run_server in
     run_dispatcher ();
     Domain.join d
 

@@ -1,5 +1,6 @@
 open Unix
 
+open Serialize.Serialize
 open Serialize
 
 (** A job is a promise of a distant work.
@@ -57,23 +58,23 @@ module Job = struct
   let remove_running_job job = 
     Hashtbl.remove running_jobs job.id
   
-  let finish_job id = 
-    let job = Hashtbl.find running_jobs id in
+  let finish_job data = 
+    let job = Hashtbl.find running_jobs data.id in
     job.status <- Done;
     remove_running_job job
 
   let process_msg (addr, msg) = 
-    let process_response _ _data = 
-      (* finish_job data.job_id *)
-      ()
+    let process_response _ data = 
+      finish_job data
+
     in 
     let process_request addr data = 
       let job = create_job data addr in
       add_running_job job
     in 
+    let data = Serialize.from_bytes msg in
 
-    let data = Serialize.from_msg msg in
-    match data.packet_type  with 
+    match data.packet_type with 
     | RESPONSE -> process_response addr data
     | REQUEST -> process_request addr data.data
   

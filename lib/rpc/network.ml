@@ -38,24 +38,43 @@ module Workers = struct
   (** Keys are defined by socket address. Each workers are unique. *)
   let workers = Hashtbl.create 16
 
-  let get_fds () = 
-    let fds = Hashtbl.fold (fun _ w acc -> w.client_fd :: acc) workers [] in
-    Transport.server :: fds
- 
-  let add_worker fd sockaddr =
-    let create_worker = {
-      client_fd = fd;
-      addr = sockaddr;
-      status = `Idle;
-      }
-    in
+  let create_worker addr = 
+    let fd = Transport.create_client addr in
+    let w = {
+    client_fd = fd;
+    addr = addr;
+    status = `Idle;
+    } in 
+    Hashtbl.add workers fd w;
+    w;;
 
-    let w = create_worker in
-      Hashtbl.add workers w.client_fd w;;
+  let add_worker fd addr =
+    let w = {
+    client_fd = fd;
+    addr = addr;
+    status = `Idle;
+    } in 
+    Hashtbl.add workers fd w;; 
+
+  let get_worker fd = Hashtbl.find workers fd;;
+
+  let get_worker_from_addr addr = 
+    let w = Hashtbl.fold (fun _ w acc -> 
+      if w.addr = addr then
+        Some w
+      else
+        acc
+    ) workers None in
+    match w with
+    | Some w -> w
+    | None -> create_worker addr;;
 
   let remove_worker fd = Hashtbl.remove workers fd;;
 
-  let get_worker fd = Hashtbl.find workers fd;;
+  let get_fds () = 
+    let fds = Hashtbl.fold (fun _ w acc -> w.client_fd :: acc) workers [] in
+    Transport.server :: fds
+
 
 end
 
@@ -89,7 +108,7 @@ module Network = struct
   
   (** Use to send a message to a remote unit *)
   let send_msg_to_worker addr msg = 
-    let w = Hashtbl.find Workers.workers addr in
+    let w = Workers.get_worker_from_addr addr in
     Transport.send_msg w.client_fd msg;;
     
 end
